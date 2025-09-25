@@ -52,7 +52,7 @@ function initSocketServer(httpServer) {
 
       await messageModel.create({
         chat: messagePayload.chat,
-        user: socket.user._id,
+        user: socket._id,
         content: response,
         role: "model",
       });
