@@ -1,0 +1,125 @@
+:root{
+  /* Typography */
+  --font-sans: Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;
+
+  /* Spacing */
+  --space-1: 6px;
+  --space-2: 12px;
+  --space-3: 18px;
+  --space-4: 24px;
+
+  /* Light theme (default) */
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --muted: #6b7280;
+  --text: #0f172a;
+  --primary: #0f62fe; /* professional blue */
+  --accent: #006d77;
+  --danger: #ef4444;
+
+  /* borders / radii / shadow */
+  --border: rgba(15,23,42,0.06);
+  --radius: 10px;
+  --shadow: 0 6px 18px rgba(15,23,42,0.08);
+}
+
+/* Dark theme overrides */
+[data-theme="dark"]{
+  --bg: #071026;
+  --surface: #0f1724;
+  --muted: #9aa4b2;
+  --text: #e6eef8;
+  --primary: #7cc3ff;
+  --accent: #66e0d5;
+  --danger: #fb7185;
+
+  --border: rgba(255,255,255,0.06);
+  --radius: 10px;
+  --shadow: 0 8px 24px rgba(2,6,23,0.6);
+}
+
+/* Respect user's system preference when app hasn't set a theme explicitly */
+@media (prefers-color-scheme: dark){
+  html:not([data-theme]){ --bg: #071026; --surface: #0f1724; --text: #e6eef8; }
+}
+:root{
+  /* Typography */
+  --font-sans: Inter, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace;
+
+  /* Spacing */
+  --space-1: 6px;
+  --space-2: 12px;
+  --space-3: 18px;
+  --space-4: 24px;
+
+  /* Light theme colors */
+  --bg: #f7f8fb;
+  --card-bg: #ffffff;
+  --muted: #6b7280;
+  --text: #0f172a;
+  --primary: #2563eb; /* blue-600 */
+  --accent: #2563eb;
+  --accent-2: #0ea5a4;
+  --danger: #ef4444;
+
+  --glass: rgba(255,255,255,0.6);
+  --shadow: 0 6px 18px rgba(15,23,42,0.08);
+  /* surface / borders / radii */
+  --surface: #ffffff;
+  --border: rgba(15,23,42,0.06);
+  --radius: 12px;
+}
+
+/* Dark theme overrides */
+[data-theme="dark"]{
+  --bg: #0b1220;
+  --card-bg: #0f1724;
+  --muted: #9ca3af;
+  --text: #e6eef8;
+  --primary: #60a5fa; /* blue-400 */
+  --accent: #34d399; /* green-400 */
+  --accent-2: #7c3aed;
+  --danger: #fb7185;
+
+  --glass: rgba(255,255,255,0.04);
+  --shadow: 0 8px 28px rgba(2,6,23,0.6);
+}
+
+/* Respect user's system preference by default */
+@media (prefers-color-scheme: dark){
+  :root{ }
+  /* prefer dark by applying data-theme on root if not explicitly set by app */
+}
+:root{
+  /* Light theme */
+  --bg: #f6f7fb;
+  --surface: #ffffff;
+  --primary: #0f62fe; /* professional blue */
+  --accent: #006d77;
+  --muted: #6b7280;
+  --text: #0f172a;
+  --border: rgba(15,23,42,0.08);
+  --radius: 10px;
+  --shadow: 0 6px 18px rgba(15,23,42,0.08);
+}
+
+/* Dark theme variables (can be enabled with [data-theme="dark"]) */
+[data-theme="dark"]{
+  --bg: #0b1220;
+  --surface: #0f1724;
+  --primary: #7cc3ff;
+  --accent: #66e0d5;
+  --muted: #9aa4b2;
+  --text: #e6eef8;
+  --border: rgba(255,255,255,0.06);
+  --radius: 10px;
+  --shadow: 0 8px 24px rgba(2,6,23,0.6);
+}
+
+/* Respect user's system preference by default */
+@media (prefers-color-scheme: dark){
+  :root{ }
+  html:not([data-theme]){ /* if no explicit theme set */ }
+}
