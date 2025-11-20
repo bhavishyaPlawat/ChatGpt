@@ -1,8 +1,10 @@
+/* frontend/src/pages/Login.jsx */
 import axios from "axios";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Import useNavigate
 
 const Login = () => {
+  const navigate = useNavigate(); // Hook for redirection
   const [form, setForm] = useState({ email: "", password: "" });
 
   const handleChange = (e) => {
@@ -12,8 +14,8 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    axios
-      .post(
+    try {
+      const res = await axios.post(
         "http://localhost:3000/api/auth/login",
         {
           email: form.email,
@@ -22,15 +24,14 @@ const Login = () => {
         {
           withCredentials: true,
         }
-      )
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((err) => {
-        console.log("error", err);
-      });
-    console.log("Login submitted:", form);
-    alert("Login submitted (check console)");
+      );
+      console.log(res);
+      // On success, redirect to chat
+      navigate("/chat");
+    } catch (err) {
+      console.error("Login error", err);
+      alert("Invalid credentials");
+    }
   };
 
   return (
@@ -46,6 +47,7 @@ const Login = () => {
             placeholder="you@example.com"
             type="email"
             className="input"
+            required
           />
 
           <label className="label">Password</label>
@@ -56,6 +58,7 @@ const Login = () => {
             placeholder="Password"
             type="password"
             className="input"
+            required
           />
 
           <button type="submit" className="btn-primary">

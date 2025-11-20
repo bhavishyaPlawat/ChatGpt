@@ -1,7 +1,9 @@
+import axios from "axios";
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 const Register = () => {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -14,11 +16,29 @@ const Register = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Replace this with real submit logic
-    console.log("Register submitted:", form);
-    alert("Register submitted (check console)");
+    try {
+      const res = await axios.post(
+        "/api/auth/register",
+        {
+          fullName: {
+            firstName: form.firstName,
+            lastName: form.lastName,
+          },
+          email: form.email,
+          password: form.password,
+        },
+        { withCredentials: true }
+      );
+      console.log("register success", res?.data);
+      navigate("/");
+    } catch (err) {
+      console.error("Register error", err);
+      const message =
+        err?.response?.data?.message || err.message || "Network error";
+      alert(`Register failed: ${message}`);
+    }
   };
 
   return (
