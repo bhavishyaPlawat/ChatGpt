@@ -1,6 +1,7 @@
-import axios from "axios";
 import React, { useState } from "react";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/global.css";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -10,100 +11,95 @@ const Register = () => {
     email: "",
     password: "",
   });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post(
-        "/api/auth/register",
+      await axios.post(
+        "http://localhost:3000/api/auth/register",
         {
-          fullName: {
-            firstName: form.firstName,
-            lastName: form.lastName,
-          },
+          fullName: { firstName: form.firstName, lastName: form.lastName },
           email: form.email,
           password: form.password,
         },
         { withCredentials: true }
       );
-      console.log("register success", res?.data);
-      navigate("/");
+      navigate("/chat");
     } catch (err) {
-      console.error("Register error", err);
-      const message =
-        err?.response?.data?.message || err.message || "Network error";
-      alert(`Register failed: ${message}`);
+      setError(err.response?.data?.message || "Registration failed");
     }
   };
 
   return (
-    <div className="page register">
-      <div className="form-card">
-        <h1>Register</h1>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h1 className="auth-title">Create Account</h1>
+        <p className="auth-subtitle">Start chatting with AI today</p>
+
+        {error && (
+          <div
+            style={{
+              color: "var(--danger-color)",
+              marginBottom: "12px",
+              fontSize: "14px",
+              textAlign: "center",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
-          <label className="label">Full name</label>
-          <div className="input-row">
+          <div style={{ display: "flex", gap: "10px" }}>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">First Name</label>
+              <input
+                className="form-input"
+                required
+                value={form.firstName}
+                onChange={(e) =>
+                  setForm({ ...form, firstName: e.target.value })
+                }
+              />
+            </div>
+            <div className="form-group" style={{ flex: 1 }}>
+              <label className="form-label">Last Name</label>
+              <input
+                className="form-input"
+                required
+                value={form.lastName}
+                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email</label>
             <input
-              name="firstName"
-              value={form.firstName}
-              onChange={handleChange}
-              placeholder="First name"
-              className="input"
-            />
-            <input
-              name="lastName"
-              value={form.lastName}
-              onChange={handleChange}
-              placeholder="Last name"
-              className="input"
+              className="form-input"
+              type="email"
+              required
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
             />
           </div>
-
-          <label className="label">Email</label>
-          <input
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            placeholder="you@example.com"
-            type="email"
-            className="input"
-          />
-
-          <label className="label">Password</label>
-          <input
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            placeholder="Password"
-            type="password"
-            className="input"
-          />
-
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input
+              className="form-input"
+              type="password"
+              required
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+            />
+          </div>
           <button type="submit" className="btn-primary">
-            Register
+            Create Account
           </button>
         </form>
-        <p
-          style={{
-            marginTop: 12,
-            textAlign: "center",
-            color: "var(--muted)",
-            fontSize: 13,
-          }}
-        >
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            style={{ color: "var(--primary)", textDecoration: "none" }}
-          >
-            Sign in
-          </Link>
-        </p>
+        <Link to="/login" className="auth-link">
+          Already have an account? Log in
+        </Link>
       </div>
     </div>
   );
