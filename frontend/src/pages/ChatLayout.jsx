@@ -6,6 +6,12 @@ import Sidebar from "../components/Sidebar";
 import Modal from "../components/Modal";
 import "../styles/Chat.css";
 
+// --- New Imports for Markdown & Code Highlighting ---
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+
 const ChatLayout = () => {
   const navigate = useNavigate();
   const [socket, setSocket] = useState(null);
@@ -60,7 +66,7 @@ const ChatLayout = () => {
       const res = await axios.post(
         "http://localhost:3000/api/chat",
         { title: newChatName },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       const newChat = res.data.chat;
       setChats([newChat, ...chats]);
@@ -130,7 +136,42 @@ const ChatLayout = () => {
                   >
                     {msg.role === "user" ? "U" : "AI"}
                   </div>
-                  <div className="content">{msg.content}</div>
+
+                  {/* --- UPDATED CONTENT RENDERING --- */}
+                  <div className="content">
+                    {msg.role === "model" ? (
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          code({ inline, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(
+                              className || "",
+                            );
+                            return !inline && match ? (
+                              <SyntaxHighlighter
+                                style={vscDarkPlus}
+                                language={match[1]}
+                                PreTag="div"
+                                {...props}
+                              >
+                                {String(children).replace(/\n$/, "")}
+                              </SyntaxHighlighter>
+                            ) : (
+                              <code className={className} {...props}>
+                                {children}
+                              </code>
+                            );
+                          },
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    ) : (
+                      // Keep user messages simple text
+                      msg.content
+                    )}
+                  </div>
+                  {/* --- END UPDATED CONTENT RENDERING --- */}
                 </div>
               ))}
               {loading && (

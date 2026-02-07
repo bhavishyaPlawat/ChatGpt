@@ -10,7 +10,13 @@ const {
 } = require("@pinecone-database/pinecone/dist/assistant/data/chat");
 
 function initSocketServer(httpServer) {
-  const io = new Server(httpServer, {});
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "http://localhost:5173",
+      allowedHeaders: ["Content-Type", "Authorization"],
+      credentials: true,
+    },
+  });
 
   // checked if user is logged in or not
   io.use(async (socket, next) => {
@@ -43,15 +49,15 @@ function initSocketServer(httpServer) {
 
       //saving user message in mongodb and vector generate started together for optimisation
 
-      const [message, vectors] = await Promise.all([
-        messageModel.create({
-          chat: messagePayload.chat,
-          user: socket.user._id,
-          content: messagePayload.content,
-          role: "user",
-        }),
-        aiService.createVector(messagePayload.content),
-      ]);
+      const message = await messageModel.create({
+        chat: messagePayload.chat,
+        user: socket.user._id,
+        content: messagePayload.content,
+        role: "user",
+      });
+
+      // 2. Then attempt vector and AI generation
+      const vectors = await aiService.createVector(messagePayload.content);
 
       await createMemory({
         vectors,
