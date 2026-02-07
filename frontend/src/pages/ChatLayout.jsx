@@ -1,39 +1,49 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
-import Modal from "../components/Modal";
-import "../styles/Chat.css";
+import { chatService } from "../api/chat.service";
 
-// --- New Imports for Markdown & Code Highlighting ---
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
+// Components
+import Sidebar from "../components/Sidebar";
+import MessageList from "../components/Chat/MessageList";
+import ChatInput from "../components/chat/ChatInput";
+import Modal from "../components/Modal";
+
+// Styles
+import "../styles/Chat.css";
 
 const ChatLayout = () => {
   const navigate = useNavigate();
   const [socket, setSocket] = useState(null);
 
-  // State
+  // Data State
   const [chats, setChats] = useState([]);
   const [currentChatId, setCurrentChatId] = useState(null);
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Modal State
+  // UI State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newChatName, setNewChatName] = useState("");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  const messagesEndRef = useRef(null);
+  // 1. Fetch Chats
+  useEffect(() => {
+    const fetchUserChats = async () => {
+      try {
+        const data = await chatService.getAllChats();
+        const chatList = data.chats || data;
+        setChats(chatList);
+      } catch (err) {
+        console.error("Error loading chats:", err);
+      }
+    };
+    fetchUserChats();
+  }, []);
 
-  // 1. Initialize Socket & Load Initial Data
+  // 2. Initialize Socket
   useEffect(() => {
     const newSocket = io("http://localhost:3000", { withCredentials: true });
-
-    newSocket.on("connect", () => console.log("Socket connected"));
 
     newSocket.on("ai-response", (data) => {
       setLoading(false);
@@ -44,172 +54,81 @@ const ChatLayout = () => {
     });
 
     newSocket.on("error", (err) => {
-      console.error("Socket error:", err);
       if (err.toString().includes("Authentication")) navigate("/login");
     });
 
     setSocket(newSocket);
-
-    // Mock fetching chats (In real app, fetch from API here)
-    // fetchChats();
-
     return () => newSocket.disconnect();
   }, [navigate]);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
+  // 3. Handlers
   const handleCreateChat = async () => {
     if (!newChatName.trim()) return;
     try {
-      const res = await axios.post(
-        "http://localhost:3000/api/chat",
-        { title: newChatName },
-        { withCredentials: true },
-      );
-      const newChat = res.data.chat;
-      setChats([newChat, ...chats]);
+      const data = await chatService.createChat(newChatName);
+      const newChat = data.chat;
+
+      setChats((prev) => [newChat, ...prev]);
       setCurrentChatId(newChat._id);
       setMessages([]);
-      setIsModalOpen(false);
+      setIsModalOpen(false); // Close Popup
       setNewChatName("");
     } catch (error) {
-      console.error("Error creating chat", error);
+      alert("Failed to create chat");
+      console.log(error);
     }
   };
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!input.trim() || !socket || !currentChatId) {
+  const handleSendMessage = (text) => {
+    if (!socket || !currentChatId) {
       if (!currentChatId) alert("Please create a chat first!");
       return;
     }
-
-    setMessages((prev) => [...prev, { role: "user", content: input }]);
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
     setLoading(true);
-    socket.emit("ai-message", { chat: currentChatId, content: input });
-    setInput("");
+    socket.emit("ai-message", { chat: currentChatId, content: text });
   };
 
   const handleLogout = () => {
-    // Simple cookie clear simulation or API call
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     navigate("/");
   };
 
   return (
     <div className="chat-layout">
+      {/* Mobile Top Bar */}
+      <div className="mobile-header">
+        <button
+          className="hamburger-btn"
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        >
+          ☰
+        </button>
+        <span style={{ fontWeight: 600 }}>ChatGPT Clone</span>
+        <div style={{ width: 24 }}></div> {/* Spacer for alignment */}
+      </div>
+
       <Sidebar
         chats={chats}
         currentChatId={currentChatId}
         onSelect={(id) => {
           setCurrentChatId(id);
-          setMessages([]); /* Fetch messages for chat here */
+          setMessages([]);
         }}
-        onNewChat={() => setIsModalOpen(true)}
+        onNewChat={() => setIsModalOpen(true)} // Triggers Popup
         onLogout={handleLogout}
+        isOpen={isSidebarOpen}
+        toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
 
       <main className="chat-main">
-        <div className="chat-view">
-          {!currentChatId ? (
-            <div
-              style={{
-                margin: "auto",
-                textAlign: "center",
-                color: "var(--text-secondary)",
-              }}
-            >
-              <h1>ChatGpt</h1>
-              <p>Create a new chat to begin.</p>
-            </div>
-          ) : (
-            <>
-              {messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`message ${msg.role === "user" ? "user" : "ai"}`}
-                >
-                  <div
-                    className={`avatar ${msg.role === "user" ? "user" : "ai"}`}
-                  >
-                    {msg.role === "user" ? "U" : "AI"}
-                  </div>
-
-                  {/* --- UPDATED CONTENT RENDERING --- */}
-                  <div className="content">
-                    {msg.role === "model" ? (
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          code({ inline, className, children, ...props }) {
-                            const match = /language-(\w+)/.exec(
-                              className || "",
-                            );
-                            return !inline && match ? (
-                              <SyntaxHighlighter
-                                style={vscDarkPlus}
-                                language={match[1]}
-                                PreTag="div"
-                                {...props}
-                              >
-                                {String(children).replace(/\n$/, "")}
-                              </SyntaxHighlighter>
-                            ) : (
-                              <code className={className} {...props}>
-                                {children}
-                              </code>
-                            );
-                          },
-                        }}
-                      >
-                        {msg.content}
-                      </ReactMarkdown>
-                    ) : (
-                      // Keep user messages simple text
-                      msg.content
-                    )}
-                  </div>
-                  {/* --- END UPDATED CONTENT RENDERING --- */}
-                </div>
-              ))}
-              {loading && (
-                <div className="message ai">
-                  <div className="avatar ai">AI</div>
-                  <div className="content" style={{ fontStyle: "italic" }}>
-                    Thinking...
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </>
-          )}
-        </div>
-
-        <div className="input-area">
-          <form className="input-container" onSubmit={handleSendMessage}>
-            <textarea
-              className="chat-input"
-              placeholder="Send a message..."
-              rows={1}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) handleSendMessage(e);
-              }}
-            />
-            <button
-              type="submit"
-              className="btn-send"
-              disabled={loading || !input.trim()}
-            >
-              ➤
-            </button>
-          </form>
-        </div>
+        <>
+          <MessageList messages={messages} loading={loading} />
+          <ChatInput onSendMessage={handleSendMessage} disabled={loading} />
+        </>
       </main>
 
+      {/* Pop-up for Creating Chat */}
       <Modal
         isOpen={isModalOpen}
         title="Create New Chat"
@@ -218,10 +137,11 @@ const ChatLayout = () => {
       >
         <input
           className="form-input"
-          placeholder="Chat Name (e.g., React Help)"
+          placeholder="Enter chat name (e.g. React Help)"
           value={newChatName}
           onChange={(e) => setNewChatName(e.target.value)}
           autoFocus
+          onKeyDown={(e) => e.key === "Enter" && handleCreateChat()}
         />
       </Modal>
     </div>
