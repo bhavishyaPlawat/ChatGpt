@@ -23,25 +23,23 @@ const Login = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">Welcome Back</h1>
-        <p className="auth-subtitle">Sign in to continue your conversations</p>
-
+        <div className="auth-header">
+          <h2>Welcome back</h2>
+        </div>
         {error && (
           <div
             style={{
               color: "var(--danger-color)",
-              marginBottom: "12px",
-              fontSize: "14px",
               textAlign: "center",
+              marginBottom: "10px",
             }}
           >
             {error}
           </div>
         )}
-
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label">Email address</label>
             <input
               className="form-input"
               type="email"
@@ -60,13 +58,13 @@ const Login = () => {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
           </div>
-          <button type="submit" className="btn-primary">
-            Sign In
+          <button type="submit" className="btn-auth">
+            Continue
           </button>
         </form>
-        <Link to="/register" className="auth-link">
-          Don't have an account? Sign up
-        </Link>
+        <div className="auth-footer">
+          Don't have an account? <Link to="/register">Sign up</Link>
+        </div>
       </div>
     </div>
   );

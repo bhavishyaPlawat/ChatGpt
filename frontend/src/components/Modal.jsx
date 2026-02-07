@@ -4,30 +4,23 @@ import "../styles/Chat.css";
 const Modal = ({
   isOpen,
   title,
-  children,
   onClose,
+  children,
   onConfirm,
-  confirmText = "Create",
+  confirmText,
 }) => {
   if (!isOpen) return null;
-
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h3 style={{ marginBottom: "16px", color: "var(--text-primary)" }}>
-          {title}
-        </h3>
+    <div className="modal-backdrop">
+      <div className="modal-box">
+        <h3 style={{ marginBottom: "16px" }}>{title}</h3>
         {children}
-        <div className="modal-actions">
+        <div className="modal-footer">
           <button className="btn-secondary" onClick={onClose}>
             Cancel
           </button>
-          <button
-            className="btn-primary"
-            style={{ width: "auto" }}
-            onClick={onConfirm}
-          >
-            {confirmText}
+          <button className="btn-primary" onClick={onConfirm}>
+            {confirmText || "Confirm"}
           </button>
         </div>
       </div>

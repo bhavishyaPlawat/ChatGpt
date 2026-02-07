@@ -1,29 +1,21 @@
 import React from "react";
 import "../styles/Chat.css";
 
-const Sidebar = ({
-  chats,
-  currentChatId,
-  onSelectChat,
-  onNewChat,
-  onLogout,
-}) => {
+const Sidebar = ({ chats, currentChatId, onSelect, onNewChat, onLogout }) => {
   return (
     <aside className="sidebar">
-      <div className="sidebar-header">
-        <h2 style={{ fontSize: "18px", fontWeight: "bold" }}>AI Chat</h2>
+      <div className="sidebar-top">
+        <button className="btn-new-chat" onClick={onNewChat}>
+          <span>＋</span> New chat
+        </button>
       </div>
 
-      <button className="new-chat-btn" onClick={onNewChat}>
-        <span>+</span> New Chat
-      </button>
-
-      <div className="chat-list">
+      <div className="chat-history">
         <div
           style={{
             fontSize: "12px",
             color: "var(--text-secondary)",
-            padding: "0 4px",
+            marginBottom: "8px",
           }}
         >
           Recent
@@ -31,33 +23,18 @@ const Sidebar = ({
         {chats.map((chat) => (
           <div
             key={chat._id}
-            className={`chat-item ${
+            className={`history-item ${
               currentChatId === chat._id ? "active" : ""
             }`}
-            onClick={() => onSelectChat(chat._id)}
+            onClick={() => onSelect(chat._id)}
           >
-            {chat.title || "Untitled Conversation"}
+            {chat.title || "Untitled Chat"}
           </div>
         ))}
       </div>
 
-      <div
-        style={{
-          marginTop: "auto",
-          borderTop: "1px solid var(--border-color)",
-          paddingTop: "12px",
-        }}
-      >
-        <button
-          className="btn-secondary"
-          style={{
-            width: "100%",
-            border: "none",
-            textAlign: "left",
-            padding: "8px",
-          }}
-          onClick={onLogout}
-        >
+      <div className="sidebar-bottom">
+        <button className="btn-logout" onClick={onLogout}>
           Log out
         </button>
       </div>

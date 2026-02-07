@@ -23,7 +23,7 @@ const Register = () => {
           email: form.email,
           password: form.password,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
       navigate("/chat");
     } catch (err) {
@@ -34,22 +34,20 @@ const Register = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h1 className="auth-title">Create Account</h1>
-        <p className="auth-subtitle">Start chatting with AI today</p>
-
+        <div className="auth-header">
+          <h2>Create your account</h2>
+        </div>
         {error && (
           <div
             style={{
               color: "var(--danger-color)",
-              marginBottom: "12px",
-              fontSize: "14px",
               textAlign: "center",
+              marginBottom: "10px",
             }}
           >
             {error}
           </div>
         )}
-
         <form onSubmit={handleSubmit}>
           <div style={{ display: "flex", gap: "10px" }}>
             <div className="form-group" style={{ flex: 1 }}>
@@ -74,7 +72,7 @@ const Register = () => {
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label className="form-label">Email address</label>
             <input
               className="form-input"
               type="email"
@@ -93,13 +91,13 @@ const Register = () => {
               onChange={(e) => setForm({ ...form, password: e.target.value })}
             />
           </div>
-          <button type="submit" className="btn-primary">
-            Create Account
+          <button type="submit" className="btn-auth">
+            Sign up
           </button>
         </form>
-        <Link to="/login" className="auth-link">
-          Already have an account? Log in
-        </Link>
+        <div className="auth-footer">
+          Already have an account? <Link to="/login">Log in</Link>
+        </div>
       </div>
     </div>
   );

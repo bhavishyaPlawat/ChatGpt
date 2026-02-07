@@ -15,17 +15,20 @@ const ChatLayout = () => {
   const [currentChatId, setCurrentChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newChatName, setNewChatName] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const messagesEndRef = useRef(null);
 
-  // 1. Connect Socket & Load Initial Data
+  // 1. Initialize Socket & Load Initial Data
   useEffect(() => {
     const newSocket = io("http://localhost:3000", { withCredentials: true });
 
-    newSocket.on("connect", () => console.log("Connected to AI"));
+    newSocket.on("connect", () => console.log("Socket connected"));
+
     newSocket.on("ai-response", (data) => {
       setLoading(false);
       setMessages((prev) => [
@@ -33,25 +36,24 @@ const ChatLayout = () => {
         { role: "model", content: data.content },
       ]);
     });
+
     newSocket.on("error", (err) => {
-      console.error("Socket error", err);
-      if (err === "Authentication error: Invalid token") navigate("/login");
+      console.error("Socket error:", err);
+      if (err.toString().includes("Authentication")) navigate("/login");
     });
 
     setSocket(newSocket);
 
-    // Mock fetching chats - Replace with actual GET /api/chat if available
-    // setChats([{ _id: "1", title: "General Ideas" }]);
+    // Mock fetching chats (In real app, fetch from API here)
+    // fetchChats();
 
     return () => newSocket.disconnect();
   }, [navigate]);
 
-  // 2. Scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // 3. Handlers
   const handleCreateChat = async () => {
     if (!newChatName.trim()) return;
     try {
@@ -63,18 +65,18 @@ const ChatLayout = () => {
       const newChat = res.data.chat;
       setChats([newChat, ...chats]);
       setCurrentChatId(newChat._id);
-      setMessages([]); // Fresh start
+      setMessages([]);
       setIsModalOpen(false);
       setNewChatName("");
     } catch (error) {
-      console.error("Failed to create chat", error);
+      console.error("Error creating chat", error);
     }
   };
 
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!input.trim() || !socket || !currentChatId) {
-      if (!currentChatId) alert("Please create or select a chat first!");
+      if (!currentChatId) alert("Please create a chat first!");
       return;
     }
 
@@ -85,9 +87,9 @@ const ChatLayout = () => {
   };
 
   const handleLogout = () => {
-    // Clear cookies logic here if needed
+    // Simple cookie clear simulation or API call
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    navigate("/login");
+    navigate("/");
   };
 
   return (
@@ -95,16 +97,16 @@ const ChatLayout = () => {
       <Sidebar
         chats={chats}
         currentChatId={currentChatId}
-        onSelectChat={(id) => {
+        onSelect={(id) => {
           setCurrentChatId(id);
-          setMessages([]); /* Fetch history here */
+          setMessages([]); /* Fetch messages for chat here */
         }}
         onNewChat={() => setIsModalOpen(true)}
         onLogout={handleLogout}
       />
 
       <main className="chat-main">
-        <div className="messages-container">
+        <div className="chat-view">
           {!currentChatId ? (
             <div
               style={{
@@ -113,30 +115,30 @@ const ChatLayout = () => {
                 color: "var(--text-secondary)",
               }}
             >
-              <h1>Welcome to AI Chat</h1>
-              <p>Create a new chat to get started.</p>
+              <h1>ChatGpt</h1>
+              <p>Create a new chat to begin.</p>
             </div>
           ) : (
             <>
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
-                  className={`message-row ${
-                    msg.role === "user" ? "user" : "ai"
-                  }`}
+                  className={`message ${msg.role === "user" ? "user" : "ai"}`}
                 >
                   <div
                     className={`avatar ${msg.role === "user" ? "user" : "ai"}`}
                   >
                     {msg.role === "user" ? "U" : "AI"}
                   </div>
-                  <div className="message-bubble">{msg.content}</div>
+                  <div className="content">{msg.content}</div>
                 </div>
               ))}
               {loading && (
-                <div className="message-row ai">
+                <div className="message ai">
                   <div className="avatar ai">AI</div>
-                  <div className="message-bubble">Thinking...</div>
+                  <div className="content" style={{ fontStyle: "italic" }}>
+                    Thinking...
+                  </div>
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -144,20 +146,21 @@ const ChatLayout = () => {
           )}
         </div>
 
-        <div className="input-wrapper">
-          <form className="input-box" onSubmit={handleSendMessage}>
+        <div className="input-area">
+          <form className="input-container" onSubmit={handleSendMessage}>
             <textarea
-              placeholder="Type a message..."
+              className="chat-input"
+              placeholder="Send a message..."
+              rows={1}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) handleSendMessage(e);
               }}
-              rows={1}
             />
             <button
               type="submit"
-              className="send-btn"
+              className="btn-send"
               disabled={loading || !input.trim()}
             >
               ➤
@@ -168,13 +171,13 @@ const ChatLayout = () => {
 
       <Modal
         isOpen={isModalOpen}
-        title="Name your new chat"
+        title="Create New Chat"
         onClose={() => setIsModalOpen(false)}
         onConfirm={handleCreateChat}
       >
         <input
           className="form-input"
-          placeholder="e.g. Project Brainstorming"
+          placeholder="Chat Name (e.g., React Help)"
           value={newChatName}
           onChange={(e) => setNewChatName(e.target.value)}
           autoFocus
