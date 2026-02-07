@@ -5,7 +5,8 @@ import { chatService } from "../api/chat.service";
 
 // Components
 import Sidebar from "../components/Sidebar";
-import MessageList from "../components/Chat/MessageList";
+// FIX: Changed "Chat" to "chat" to match your folder structure
+import MessageList from "../components/chat/MessageList";
 import ChatInput from "../components/chat/ChatInput";
 import Modal from "../components/Modal";
 
@@ -27,7 +28,7 @@ const ChatLayout = () => {
   const [newChatName, setNewChatName] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // 1. Fetch Chats
+  // 1. Fetch Chats on Mount
   useEffect(() => {
     const fetchUserChats = async () => {
       try {
@@ -41,8 +42,29 @@ const ChatLayout = () => {
     fetchUserChats();
   }, []);
 
-  // 2. Initialize Socket
+  // 2. Fetch Messages when currentChatId changes
   useEffect(() => {
+    if (!currentChatId) return;
+
+    const fetchMessages = async () => {
+      try {
+        // Set loading true so the UI can show a spinner or "Thinking..." if desired
+        setLoading(true);
+        const data = await chatService.getMessages(currentChatId);
+        setMessages(data.messages);
+      } catch (error) {
+        console.error("Failed to load messages", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMessages();
+  }, [currentChatId]);
+
+  // 3. Initialize Socket
+  useEffect(() => {
+    // Ensure this matches your backend URL
     const newSocket = io("http://localhost:3000", { withCredentials: true });
 
     newSocket.on("ai-response", (data) => {
@@ -61,7 +83,7 @@ const ChatLayout = () => {
     return () => newSocket.disconnect();
   }, [navigate]);
 
-  // 3. Handlers
+  // 4. Handlers
   const handleCreateChat = async () => {
     if (!newChatName.trim()) return;
     try {
@@ -84,12 +106,14 @@ const ChatLayout = () => {
       if (!currentChatId) alert("Please create a chat first!");
       return;
     }
+    // Optimistically add user message
     setMessages((prev) => [...prev, { role: "user", content: text }]);
     setLoading(true);
     socket.emit("ai-message", { chat: currentChatId, content: text });
   };
 
   const handleLogout = () => {
+    // Clear the token cookie
     document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     navigate("/");
   };
@@ -113,7 +137,8 @@ const ChatLayout = () => {
         currentChatId={currentChatId}
         onSelect={(id) => {
           setCurrentChatId(id);
-          setMessages([]);
+          // Don't clear messages here immediately;
+          // let the useEffect handle the fetch/update to avoid flashing empty state
         }}
         onNewChat={() => setIsModalOpen(true)} // Triggers Popup
         onLogout={handleLogout}

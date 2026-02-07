@@ -34,4 +34,13 @@ export const chatService = {
   },
 
   //fetch all message of that chat
+  getMessages: async (chatId) => {
+    try {
+      const response = await apiClient.get(`/${chatId}/messages`);
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch messages:", error);
+      throw error;
+    }
+  },
 };
