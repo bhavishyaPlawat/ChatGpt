@@ -11,9 +11,13 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("http://localhost:3000/api/auth/login", form, {
-        withCredentials: true,
-      });
+      await axios.post(
+        "https://chatgpt-backend-8psi.onrender.com/api/auth/login",
+        form,
+        {
+          withCredentials: true,
+        },
+      );
       navigate("/chat");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed");

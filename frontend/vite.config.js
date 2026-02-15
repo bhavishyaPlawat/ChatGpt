@@ -8,7 +8,7 @@ export default defineConfig({
     proxy: {
       // Proxy API requests to the backend to avoid CORS in development
       "/api": {
-        target: "http://localhost:3000",
+        target: "https://chatgpt-backend-8psi.onrender.com",
         changeOrigin: true,
         secure: false,
         ws: true,

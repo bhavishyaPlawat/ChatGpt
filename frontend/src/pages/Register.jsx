@@ -17,7 +17,7 @@ const Register = () => {
     e.preventDefault();
     try {
       await axios.post(
-        "http://localhost:3000/api/auth/register",
+        "https://chatgpt-backend-8psi.onrender.com/api/auth/register",
         {
           fullName: { firstName: form.firstName, lastName: form.lastName },
           email: form.email,

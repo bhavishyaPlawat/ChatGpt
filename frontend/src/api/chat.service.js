@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Base configuration for Axios
-const API_URL = "http://localhost:3000/api/chat";
+const API_URL = "https://chatgpt-backend-8psi.onrender.com/api/chat";
 
 // Create an axios instance to handle credentials automatically
 const apiClient = axios.create({
