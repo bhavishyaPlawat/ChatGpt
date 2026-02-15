@@ -64,8 +64,12 @@ const ChatLayout = () => {
 
   // 3. Initialize Socket
   useEffect(() => {
-    // Ensure this matches your backend URL
-    const newSocket = io("http://localhost:3000", { withCredentials: true });
+    // Use your actual Render Backend URL here
+    const newSocket = io("https://chatgpt-backend-8psi.onrender.com", {
+      withCredentials: true,
+      transports: ["websocket", "polling"], // Added for better stability
+    });
+    // ...
 
     newSocket.on("ai-response", (data) => {
       setLoading(false);
