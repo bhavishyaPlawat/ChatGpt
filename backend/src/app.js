@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-
+// const env = require("dotenv").config();
 /* Routes */
 const authRoutes = require("./routes/auth.routes");
 const chatRoutes = require("./routes/chat.routes");
@@ -19,15 +19,6 @@ app.use(
 /* using middlewares */
 app.use(express.json());
 app.use(cookieParser());
-
-app.get("/health", (req, res) => {
-  console.log("🔍 /health endpoint hit");
-  res.json({
-    success: true,
-    message: "Digital Saathi API is running",
-    env: env.NODE_ENV,
-  });
-});
 
 /* Using Routes */
 app.use("/api/auth", authRoutes);
