@@ -72,9 +72,103 @@ async function getMessages(req, res) {
   }
 }
 
+async function updateChat(req, res) {
+  const { chatId } = req.params;
+  const { title } = req.body;
+  const user = req.user;
+
+  try {
+    const chat = await chatModel.findOneAndUpdate(
+      { _id: chatId, user: user._id },
+      { title },
+      { new: true },
+    );
+    if (!chat) {
+      return res.status(404).json({ message: "chat not found" });
+    }
+    res.status(200).json({
+      message: `chat title updated to ${chat.title} successfully`,
+    });
+  } catch (err) {
+    console.error("Error in updateChat:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+async function deleteChat(req, res) {
+  const { chatId } = req.params;
+  const user = req.user;
+
+  try {
+    const chat = await chatModel.deleteOne({
+      _id: chatId,
+    });
+    res.status(200).json({
+      message: "Chat deleted successfully",
+    });
+  } catch (err) {
+    console.error("Error in deleteChat:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
+async function autoTitleChat(req, res) {
+  const { chatId } = req.params;
+  const user = req.user;
+  try {
+    const chat = await chatModel.findOne({ _id: chatId, user: user._id });
+    if (!chat) {
+      return res.status(404).json({ message: "Chat not found" });
+    }
+    const messages = await messageModel
+      .find({ chat: chatId })
+      .sort({ createdAt: 1 });
+
+    const oldest = messages[0];
+
+    let newTitle;
+    if (!oldest) {
+      newTitle = "Anonymous";
+    } else {
+      newTitle = oldest.content.split(" ").slice(0, 2).join(" ");
+    }
+
+    const updatedChat = await chatModel.findByIdAndUpdate(
+      {
+        _id: chatId,
+      },
+      {
+        title: newTitle,
+      },
+      {
+        new: true,
+      },
+    );
+    if (!updatedChat) {
+      return res.status(404).json({ message: "Chat not found" });
+    }
+
+    res.status(200).json({
+      message: "Chat title updated successfully",
+      chat: {
+        _id: updatedChat._id,
+        title: updatedChat.title,
+        lastActivity: updatedChat.lastActivity,
+        user: updatedChat.user,
+      },
+    });
+  } catch (err) {
+    console.error("Error in autoTitleChat:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 // Add getMessages to the module exports
 module.exports = {
   createChat,
   getChats,
   getMessages, // New export
+  updateChat, // New export
+  deleteChat, // New export
+  autoTitleChat, // New export
 };

@@ -5,6 +5,8 @@ const cookieParser = require("cookie-parser");
 /* Routes */
 const authRoutes = require("./routes/auth.routes");
 const chatRoutes = require("./routes/chat.routes");
+const userRoutes = require("./routes/user.routes");
+const memoryRoutes = require("./routes/memory.routes");
 
 const app = express();
 
@@ -23,5 +25,7 @@ app.use(cookieParser());
 /* Using Routes */
 app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/user", userRoutes);
+app.use("/api/memory", memoryRoutes);
 
 module.exports = app;

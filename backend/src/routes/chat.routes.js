@@ -17,4 +17,17 @@ router.get(
   chatController.getMessages,
 );
 
+// PUT /api/chat/:chatId
+router.put("/:chatId", authMiddleware.authUser, chatController.updateChat);
+
+//delete /api/chat/:chatId
+router.delete("/:chatId", authMiddleware.authUser, chatController.deleteChat);
+
+// POST /api/chat/:chatId/auto-title
+router.post(
+  "/:chatId/auto-title",
+  authMiddleware.authUser,
+  chatController.autoTitleChat,
+);
+
 module.exports = router;
